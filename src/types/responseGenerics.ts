@@ -1,3 +1,4 @@
+// 放response的泛型
 export interface PageResponseGenerics<T> {
     page: number;
     results: T[];

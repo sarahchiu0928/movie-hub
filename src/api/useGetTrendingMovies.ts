@@ -13,7 +13,7 @@ const trendingMoviesQueryFn = async () => {
   })
   return res.data
 }
-
+// vue query
 export const useGetTrendingMovies = (options?: Omit<UseQueryOptions<TrendingMoviesResponse>, 'queryKey' | 'queryFn'>) => {
   return useQuery<TrendingMoviesResponse>({
     queryKey: trendingMoviesQueryKey,
