@@ -1,0 +1,187 @@
+<script setup lang="ts">
+import type { Movie } from '../types/movies'
+
+defineProps<{
+  movie: Movie
+  similarMovies: Movie[]
+}>()
+
+const emit = defineEmits<{
+  back: []
+  selectMovie: [movie: Movie]
+}>()
+</script>
+
+<template>
+  <div class="relative min-h-screen pb-20 overflow-x-hidden">
+    <!-- 1. 沉浸式背景圖層 -->
+    <div class="absolute top-0 left-0 w-full h-[100vh] z-0">
+      <img :src="movie.backdrop" class="w-full h-full object-cover opacity-40 scale-105" />
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-transparent"></div>
+    </div>
+
+    <!-- 2. 內容主體區 -->
+    <div class="relative z-10 pt-32 px-6 md:px-12 max-w-7xl mx-auto">
+      <!-- 返回按鈕 -->
+      <button @click="emit('back')"
+        class="flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-all group">
+        <div
+          class="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-white/30">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </div>
+        <span class="font-bold text-sm">返回首頁</span>
+      </button>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <!-- 左側：海報卡片 -->
+        <div class="lg:col-span-4 hidden lg:block">
+          <div class="relative group">
+            <div
+              class="absolute -inset-4 bg-indigo-500/20 blur-3xl opacity-50 group-hover:opacity-100 transition-opacity">
+            </div>
+            <img :src="movie.poster"
+              class="relative w-full rounded-[2rem] shadow-2xl border border-white/10" />
+            <div
+              class="absolute bottom-6 left-6 right-6 p-4 custom-blur rounded-2xl border border-white/10 flex items-center justify-between">
+              <div>
+                <div class="text-[10px] font-black uppercase text-indigo-400 tracking-widest">Available in</div>
+                <div class="text-sm font-bold">4K Ultra HD / HDR</div>
+              </div>
+              <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右側：電影核心資訊 -->
+        <div class="lg:col-span-8 space-y-10">
+          <div class="space-y-4">
+            <div class="flex items-center gap-3">
+              <span
+                class="px-3 py-1 bg-indigo-600 rounded-md text-[10px] font-black tracking-tighter">PREMIUM</span>
+              <span class="text-slate-400 text-sm font-bold">{{ movie.year }} • {{ movie.duration }}</span>
+            </div>
+            <h1 class="text-5xl md:text-8xl font-black tracking-tighter leading-none italic">{{ movie.title }}</h1>
+            <div class="flex flex-wrap items-center gap-6 pt-2">
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center border border-yellow-500/20">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="currentColor" class="text-yellow-500">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-xl font-black leading-none">{{ movie.rating }}</div>
+                  <div class="text-[9px] text-slate-500 font-black uppercase mt-1">IMDb Rating</div>
+                </div>
+              </div>
+              <div class="h-8 w-px bg-white/10"></div>
+              <div class="space-y-0.5">
+                <div class="text-lg font-bold text-slate-200">{{ movie.genre }}</div>
+                <div class="text-[9px] text-slate-500 font-black uppercase">影片類型</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 簡介區塊 -->
+          <div class="p-8 bg-slate-900/40 backdrop-blur-md rounded-3xl border border-white/5 space-y-4">
+            <h4 class="text-lg font-bold flex items-center gap-2">
+              <span class="w-1 h-5 bg-indigo-500 rounded-full"></span>
+              劇情故事
+            </h4>
+            <p class="text-slate-300 text-lg leading-relaxed font-light">
+              {{ movie.description }}
+            </p>
+          </div>
+
+          <!-- 演員名單 -->
+          <div class="space-y-6" v-if="movie.cast && movie.cast.length > 0">
+            <h4 class="text-lg font-bold">主要卡司陣容</h4>
+            <div class="flex flex-wrap gap-6">
+              <div v-for="actor in movie.cast" :key="actor.name"
+                class="flex items-center gap-3 group cursor-pointer">
+                <div
+                  class="w-14 h-14 rounded-full overflow-hidden border-2 border-white/5 group-hover:border-indigo-500 transition-colors shadow-xl">
+                  <img :src="actor.img" class="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white group-hover:text-indigo-400">{{ actor.name }}</div>
+                  <div class="text-[10px] text-slate-500 font-medium uppercase">{{ actor.role }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 操作按鈕 -->
+          <div class="flex flex-wrap gap-4 pt-4">
+            <button
+              class="flex-1 min-w-[200px] flex items-center justify-center gap-3 bg-white text-slate-950 px-8 py-5 rounded-2xl font-black hover:bg-indigo-50 transition-all transform active:scale-95 shadow-2xl">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              立即播放
+            </button>
+            <button
+              class="px-8 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-colors font-bold flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+              </svg>
+              加入清單
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 底部推薦區 (根據類型篩選) -->
+      <div class="mt-32 space-y-10">
+        <div class="flex items-center justify-between">
+          <h3 class="text-3xl font-black italic flex items-center gap-4">
+            更多 <span class="text-indigo-500">{{ movie.genre.split(' / ')[0] }}</span> 類型推薦
+            <div class="h-px w-32 bg-indigo-500/30"></div>
+          </h3>
+          <button class="text-slate-500 hover:text-white text-sm font-bold">查看全部類型</button>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div v-for="similarMovie in similarMovies" :key="similarMovie.id" @click="emit('selectMovie', similarMovie)"
+            class="group cursor-pointer">
+            <div
+              class="relative aspect-[2/3] rounded-2xl overflow-hidden border border-white/5 group-hover:border-indigo-500/50 transition-all duration-500 shadow-xl group-hover:-translate-y-2">
+              <img :src="similarMovie.poster"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-end">
+                <div class="text-[10px] font-black text-indigo-400 mb-1">IMDb {{ similarMovie.rating }}</div>
+                <div class="text-sm font-bold truncate">{{ similarMovie.title }}</div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="text-sm font-bold truncate text-slate-200 group-hover:text-indigo-400 transition-colors">
+                {{ similarMovie.title }}</div>
+              <div class="text-xs text-slate-500 font-medium">{{ similarMovie.year }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.custom-blur {
+  backdrop-filter: blur(40px) saturate(150%);
+  background-color: rgba(15, 23, 42, 0.6);
+}
+</style>
