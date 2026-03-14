@@ -43,7 +43,7 @@ watch(movies, (val) => {
   if (val.length && !featuredMovie.value) {
     featuredMovie.value = val[0] ?? null
   }
-})
+}, { immediate: true })
 
 const goToDetail = (movie: Movie) => {
   router.push({ name: 'movie-detail', params: { id: movie.id } })
