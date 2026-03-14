@@ -1,14 +1,13 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import { useRoute, RouterLink } from 'vue-router'
+
 defineProps<{
   scrolled: boolean
-  activeView: 'home' | 'detail'
-  searchQuery: string
 }>()
 
-const emit = defineEmits<{
-  'update:activeView': [value: 'home' | 'detail']
-  'update:searchQuery': [value: string]
-}>()
+const route = useRoute()
+const searchQuery = ref('')
 </script>
 
 <template>
@@ -17,7 +16,7 @@ const emit = defineEmits<{
     scrolled ? 'bg-slate-950/90 backdrop-blur-md shadow-lg border-b border-white/10' : 'bg-transparent'
   ]">
     <div class="flex items-center gap-8">
-      <div @click="emit('update:activeView', 'home')" class="flex items-center gap-2 cursor-pointer group">
+      <RouterLink to="/" class="flex items-center gap-2 cursor-pointer group">
         <div
           class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center group-hover:bg-indigo-500 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -29,14 +28,14 @@ const emit = defineEmits<{
         <h1
           class="text-2xl font-black tracking-tighter bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
           CINEPULSE</h1>
-      </div>
+      </RouterLink>
 
       <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
-        <button @click="emit('update:activeView', 'home')"
-          :class="[activeView === 'home' ? 'text-white underline underline-offset-8 decoration-indigo-500' : 'hover:text-white transition-colors']">首頁</button>
-        <button @click="emit('update:activeView', 'detail')" v-if="activeView === 'detail'"
-          class="text-indigo-500 font-bold">詳情介紹</button>
-        <button v-if="activeView === 'home'" class="hover:text-white transition-colors">電影</button>
+        <RouterLink to="/"
+          :class="[route.name === 'home' ? 'text-white underline underline-offset-8 decoration-indigo-500' : 'hover:text-white transition-colors']">首頁</RouterLink>
+        <span v-if="route.name === 'movie-detail'"
+          class="text-indigo-500 font-bold">詳情介紹</span>
+        <button v-if="route.name === 'home'" class="hover:text-white transition-colors">電影</button>
         <button class="hover:text-white transition-colors">影集</button>
         <button class="hover:text-white transition-colors">我的清單</button>
       </div>
@@ -50,7 +49,7 @@ const emit = defineEmits<{
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.3-4.3" />
         </svg>
-        <input :value="searchQuery" @input="emit('update:searchQuery', ($event.target as HTMLInputElement).value)" type="text" placeholder="搜尋電影、演員..."
+        <input v-model="searchQuery" type="text" placeholder="搜尋電影、演員..."
           class="bg-slate-900/50 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-slate-900 w-64 transition-all" />
       </div>
       <button class="p-2 text-slate-400 hover:text-white transition-colors relative">
