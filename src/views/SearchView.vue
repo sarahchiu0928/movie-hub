@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSearchMovies } from '../api/useSearchMovies'
 import { IMAGE_BASE_URL } from '../constants/baseUrl'
+import { useAuth } from '../composables/useAuth'
+import { useWatchlist } from '../composables/useWatchlist'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,9 +12,23 @@ const router = useRouter()
 const query = computed(() => (route.query.q as string) || '')
 
 const { data, isFetching } = useSearchMovies(query)
+const { user } = useAuth()
+const { isInWatchlist, toggleWatchlist } = useWatchlist()
 
 const goToMovie = (id: number) => {
   router.push({ name: 'movie-detail', params: { id } })
+}
+
+const handleToggle = (e: MouseEvent, movie: { id: number; title: string; poster_path: string | null; release_date?: string; vote_average: number }) => {
+  e.stopPropagation()
+  if (!user.value) return
+  toggleWatchlist({
+    id: movie.id,
+    title: movie.title,
+    poster: movie.poster_path ? `${IMAGE_BASE_URL}/w500${movie.poster_path}` : '',
+    year: movie.release_date?.slice(0, 4) ?? '',
+    rating: Math.round(movie.vote_average * 10) / 10,
+  })
 }
 </script>
 
@@ -39,6 +55,17 @@ const goToMovie = (id: number) => {
           class="aspect-[2/3] rounded-2xl overflow-hidden bg-slate-900 shadow-xl border border-white/5 transition-all duration-300 group-hover:scale-105 group-hover:border-indigo-500/50">
           <img v-if="movie.poster_path" :src="`${IMAGE_BASE_URL}/w500${movie.poster_path}`" :alt="movie.title"
             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+          <!-- 愛心收藏按鈕 -->
+          <button v-if="user"
+            class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            @click="(e) => handleToggle(e, movie)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              :fill="isInWatchlist(movie.id) ? '#f43f5e' : 'none'"
+              :stroke="isInWatchlist(movie.id) ? '#f43f5e' : 'white'"
+              stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
           <div v-else class="w-full h-full flex items-center justify-center text-slate-600">
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="1.5">

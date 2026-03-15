@@ -126,9 +126,10 @@ const handleBlur = () => {
             <p class="text-sm font-semibold text-white truncate">{{ user.displayName ?? user.email }}</p>
             <p v-if="user.displayName" class="text-xs text-slate-400 truncate mt-0.5">{{ user.email }}</p>
           </div>
-          <button class="w-full text-left px-4 py-3 text-sm text-white hover:bg-slate-800 transition-colors">
+          <RouterLink :to="{ name: 'watchlist' }" @click="showUserMenu = false"
+            class="block w-full text-left px-4 py-3 text-sm text-white hover:bg-slate-800 transition-colors">
             我的清單
-          </button>
+          </RouterLink>
           <button @click="handleLogout"
             class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-slate-800 transition-colors border-t border-white/10">
             登出
