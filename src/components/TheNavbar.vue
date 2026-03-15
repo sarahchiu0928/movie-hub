@@ -9,7 +9,7 @@ defineProps<{
   scrolled: boolean
 }>()
 
-const { user, logout } = useAuth()
+const { user, logout, loginWithGoogle } = useAuth()
 const showUserMenu = ref(false)
 
 const handleLogout = async () => {
@@ -60,13 +60,7 @@ const handleBlur = () => {
       </RouterLink>
 
       <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
-        <RouterLink to="/"
-          :class="[route.name === 'home' ? 'text-white underline underline-offset-8 decoration-indigo-500' : 'hover:text-white transition-colors']">
-          首頁</RouterLink>
         <span v-if="route.name === 'movie-detail'" class="text-indigo-500 font-bold">詳情介紹</span>
-        <button v-if="route.name === 'home'" class="hover:text-white transition-colors">電影</button>
-        <button class="hover:text-white transition-colors">影集</button>
-        <button class="hover:text-white transition-colors">我的清單</button>
       </div>
     </div>
 
@@ -108,11 +102,11 @@ const handleBlur = () => {
           <div v-else-if="searchResults" class="p-4 text-center text-slate-400 text-sm">找不到相關電影</div>
         </div>
       </div>
-      <!-- 未登入：顯示登入按鈕 -->
-      <RouterLink v-if="!user" :to="{ name: 'login' }"
+      <!-- 未登入：直接觸發 Google 登入 -->
+      <button v-if="!user" @click="loginWithGoogle"
         class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg transition-colors">
         登入
-      </RouterLink>
+      </button>
 
       <!-- 已登入：顯示頭像與下拉選單 -->
       <div v-else class="relative">
@@ -132,8 +126,11 @@ const handleBlur = () => {
             <p class="text-sm font-semibold text-white truncate">{{ user.displayName ?? user.email }}</p>
             <p v-if="user.displayName" class="text-xs text-slate-400 truncate mt-0.5">{{ user.email }}</p>
           </div>
+          <button class="w-full text-left px-4 py-3 text-sm text-white hover:bg-slate-800 transition-colors">
+            我的清單
+          </button>
           <button @click="handleLogout"
-            class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-slate-800 transition-colors">
+            class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-slate-800 transition-colors border-t border-white/10">
             登出
           </button>
         </div>

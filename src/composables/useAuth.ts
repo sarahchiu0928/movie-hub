@@ -8,7 +8,7 @@ import {
   onAuthStateChanged,
   type User
 } from 'firebase/auth'
-import { auth } from '../firebase'
+import { auth } from '../utils/firebase'
 
 const user = ref<User | null>(null)
 const isLoading = ref(true)
