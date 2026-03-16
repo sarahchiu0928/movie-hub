@@ -2,6 +2,8 @@
 import type { Movie } from '../types/movies'
 import { ref } from 'vue'
 import { useGetMovieTrailer } from '../api/useGetMovieTrailer'
+import { useWatchlist } from '../composables/useWatchlist'
+import { useAuth } from '../composables/useAuth'
 
 const props = defineProps<{
   movie: Movie
@@ -12,6 +14,21 @@ const emit = defineEmits<{
   back: []
   selectMovie: [movie: Movie]
 }>()
+
+const { user } = useAuth()
+const { isInWatchlist, toggleWatchlist } = useWatchlist()
+
+const handleToggle = (e: MouseEvent) => {
+  e.stopPropagation()
+  if (!user.value) return
+  toggleWatchlist({
+    id: props.movie.id,
+    title: props.movie.title,
+    poster: props.movie.poster,
+    year: props.movie.year,
+    rating: props.movie.rating,
+  })
+}
 
 const movieId = ref(0)
 const showTrailerModal = ref(false)
@@ -54,8 +71,7 @@ const handlePlayClick = () => {
             <div
               class="absolute -inset-4 bg-indigo-500/20 blur-3xl opacity-50 group-hover:opacity-100 transition-opacity">
             </div>
-            <img :src="movie.poster"
-              class="relative w-full rounded-[2rem] shadow-2xl border border-white/10" />
+            <img :src="movie.poster" class="relative w-full rounded-[2rem] shadow-2xl border border-white/10" />
             <div
               class="absolute bottom-6 left-6 right-6 p-4 custom-blur rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
@@ -75,17 +91,29 @@ const handlePlayClick = () => {
         <div class="lg:col-span-8 space-y-10">
           <div class="space-y-4">
             <div class="flex items-center gap-3">
-              <span
-                class="px-3 py-1 bg-indigo-600 rounded-md text-[10px] font-black tracking-tighter">PREMIUM</span>
+              <span class="px-3 py-1 bg-indigo-600 rounded-md text-[10px] font-black tracking-tighter">PREMIUM</span>
               <span class="text-slate-400 text-sm font-bold">{{ movie.year }} • {{ movie.duration }}</span>
             </div>
-            <h1 class="text-5xl md:text-8xl font-black tracking-tighter leading-none italic">{{ movie.title }}</h1>
+            <!-- 標題 + 愛心收藏按鈕 -->
+            <div class="flex items-center justify-between gap-4">
+              <h1 class="text-5xl md:text-8xl font-black tracking-tighter leading-none italic">{{ movie.title }}</h1>
+              <button v-if="user"
+                class="w-12 h-12 rounded-full bg-black/50 border border-white/0 hover:border-white/70 flex items-center justify-center hover:bg-black/70 transition-colors flex-shrink-0"
+                @click="handleToggle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
+                  :fill="isInWatchlist(movie.id) ? '#f43f5e' : 'none'"
+                  :stroke="isInWatchlist(movie.id) ? '#f43f5e' : 'white'" stroke-width="2">
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </button>
+            </div>
             <div class="flex flex-wrap items-center gap-6 pt-2">
               <div class="flex items-center gap-2">
                 <div
                   class="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center border border-yellow-500/20">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                    fill="currentColor" class="text-yellow-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"
+                    class="text-yellow-500">
                     <polygon
                       points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
@@ -118,8 +146,7 @@ const handlePlayClick = () => {
           <div class="space-y-6" v-if="movie.cast && movie.cast.length > 0">
             <h4 class="text-lg font-bold">主要卡司陣容</h4>
             <div class="flex flex-wrap gap-6">
-              <div v-for="actor in movie.cast" :key="actor.name"
-                class="flex items-center gap-3 group cursor-pointer">
+              <div v-for="actor in movie.cast" :key="actor.name" class="flex items-center gap-3 group cursor-pointer">
                 <div
                   class="w-14 h-14 rounded-full overflow-hidden border-2 border-white/5 group-hover:border-indigo-500 transition-colors shadow-xl">
                   <img :src="actor.img" class="w-full h-full object-cover" />
@@ -134,24 +161,14 @@ const handlePlayClick = () => {
 
           <!-- 操作按鈕 -->
           <div class="flex flex-wrap gap-4 pt-4">
-            <button
-              @click="handlePlayClick"
+            <button @click="handlePlayClick"
               class="flex-1 min-w-[200px] flex items-center justify-center gap-3 bg-white text-slate-950 px-8 py-5 rounded-2xl font-black hover:bg-indigo-50 transition-all transform active:scale-95 shadow-2xl">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="5 3 19 12 5 21 5 3" />
               </svg>
               立即播放
             </button>
-            <button
-              class="px-8 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-colors font-bold flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 12h14" />
-                <path d="M12 5v14" />
-              </svg>
-              加入清單
-            </button>
+
           </div>
         </div>
       </div>
@@ -216,15 +233,10 @@ const handlePlayClick = () => {
 
           <!-- 預告片視頻 -->
           <div v-else-if="trailerData?.results && trailerData.results.length > 0" class="aspect-video">
-            <iframe
-              v-if="trailerData.results[0]"
-              :src="`https://www.youtube.com/embed/${trailerData.results[0].key}`"
-              title="Movie Trailer"
-              class="w-full h-full"
-              frameborder="0"
+            <iframe v-if="trailerData.results[0]" :src="`https://www.youtube.com/embed/${trailerData.results[0].key}`"
+              title="Movie Trailer" class="w-full h-full" frameborder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-            ></iframe>
+              allowfullscreen></iframe>
           </div>
 
           <!-- 沒有預告片 -->
