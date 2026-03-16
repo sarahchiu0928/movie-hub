@@ -42,3 +42,16 @@ export interface MovieVideosResponse {
 id: number
 results: TmdbVideo[]
 }
+
+export interface TmdbCast {
+id: number
+name: string
+character: string
+profile_path: string | null
+order: number
+}
+
+export interface TmdbCredits {
+id: number
+cast: TmdbCast[]
+}

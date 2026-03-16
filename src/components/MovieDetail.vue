@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { Movie } from '../types/movies'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useGetMovieTrailer } from '../api/useGetMovieTrailer'
+import { useGetMovieCredits } from '../api/useGetmovieCredits'
 import { useWatchlist } from '../composables/useWatchlist'
 import { useAuth } from '../composables/useAuth'
 
@@ -33,6 +34,10 @@ const handleToggle = (e: MouseEvent) => {
 const movieId = ref(0)
 const showTrailerModal = ref(false)
 const { data: trailerData, isLoading: trailerLoading, error: trailerError } = useGetMovieTrailer(movieId)
+
+const creditsMovieId = computed(() => String(props.movie.id))
+const { data: creditsData } = useGetMovieCredits(creditsMovieId)
+const showAllCast = ref(false)
 
 const handlePlayClick = () => {
   movieId.value = props.movie.id
@@ -98,7 +103,7 @@ const handlePlayClick = () => {
             <div class="flex items-center justify-between gap-4">
               <h1 class="text-5xl md:text-8xl font-black tracking-tighter leading-none italic">{{ movie.title }}</h1>
               <button v-if="user"
-                class="w-12 h-12 rounded-full bg-black/50 border border-white/0 hover:border-white/70 flex items-center justify-center hover:bg-black/70 transition-colors flex-shrink-0"
+                class="w-12 h-12 rounded-full bg-black/50 border-2 border-white/0 hover:border-white/50 flex items-center justify-center hover:bg-black/70 transition-colors flex-shrink-0"
                 @click="handleToggle">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
                   :fill="isInWatchlist(movie.id) ? '#f43f5e' : 'none'"
@@ -143,20 +148,30 @@ const handlePlayClick = () => {
           </div>
 
           <!-- 演員名單 -->
-          <div class="space-y-6" v-if="movie.cast && movie.cast.length > 0">
+          <div class="space-y-6" v-if="creditsData?.cast && creditsData.cast.length > 0">
             <h4 class="text-lg font-bold">主要卡司陣容</h4>
             <div class="flex flex-wrap gap-6">
-              <div v-for="actor in movie.cast" :key="actor.name" class="flex items-center gap-3 group cursor-pointer">
+              <div v-for="actor in (showAllCast ? creditsData.cast : creditsData.cast.slice(0, 3))" :key="actor.id" class="flex items-center gap-3 group cursor-pointer">
                 <div
                   class="w-14 h-14 rounded-full overflow-hidden border-2 border-white/5 group-hover:border-indigo-500 transition-colors shadow-xl">
-                  <img :src="actor.img" class="w-full h-full object-cover" />
+                  <img
+                    v-if="actor.profile_path"
+                    :src="`https://image.tmdb.org/t/p/w185${actor.profile_path}`"
+                    class="w-full h-full object-cover" />
+                  <div v-else class="w-full h-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs">
+                    {{ actor.name[0] }}
+                  </div>
                 </div>
                 <div>
                   <div class="text-sm font-bold text-white group-hover:text-indigo-400">{{ actor.name }}</div>
-                  <div class="text-[10px] text-slate-500 font-medium uppercase">{{ actor.role }}</div>
+                  <div class="text-[10px] text-slate-500 font-medium uppercase">{{ actor.character }}</div>
                 </div>
               </div>
             </div>
+            <button v-if="creditsData.cast.length > 3" @click="showAllCast = !showAllCast"
+              class="text-sm text-indigo-400 hover:text-indigo-300 font-bold transition-colors">
+              {{ showAllCast ? '收起' : `查看更多 +${creditsData.cast.length - 3} 位演員` }}
+            </button>
           </div>
 
           <!-- 操作按鈕 -->
