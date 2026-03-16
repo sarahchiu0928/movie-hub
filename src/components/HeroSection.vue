@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import type { Movie } from '../types/movies'
+import { ref } from 'vue'
+import { useGetMovieTrailer } from '../api/useGetMovieTrailer'
 
-defineProps<{
+const { movie } = defineProps<{
   movie: Movie
+  similarMovies: Movie[]
 }>()
 
 const emit = defineEmits<{
   viewDetail: []
 }>()
+
+const movieId = ref(0)
+const showTrailerModal = ref(false)
+const { data: trailerData, isLoading: trailerLoading, error: trailerError } = useGetMovieTrailer(movieId)
+
+const handlePlayClick = () => {
+  movieId.value = movie.id
+  showTrailerModal.value = true
+}
 </script>
 
 <template>
@@ -52,7 +64,7 @@ const emit = defineEmits<{
       </p>
 
       <div class="flex items-center gap-4 pt-4">
-        <button
+        <button @click="handlePlayClick"
           class="flex items-center gap-2 bg-white text-slate-950 px-8 py-3.5 rounded-xl font-bold hover:bg-indigo-50 transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-white/10">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -72,6 +84,46 @@ const emit = defineEmits<{
         </button>
       </div>
     </div>
+    <!-- 預告片 Modal -->
+    <Teleport to="body" v-if="showTrailerModal">
+      <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        @click.self="showTrailerModal = false">
+        <div class="relative w-full max-w-4xl bg-slate-900 rounded-2xl overflow-hidden">
+          <!-- 關閉按鈕 -->
+          <button @click="showTrailerModal = false"
+            class="absolute top-4 right-4 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+
+          <!-- 加載狀態 -->
+          <div v-if="trailerLoading" class="aspect-video bg-slate-800 flex items-center justify-center">
+            <div class="text-slate-400">加載預告片中...</div>
+          </div>
+
+          <!-- 錯誤狀態 -->
+          <div v-else-if="trailerError" class="aspect-video bg-slate-800 flex items-center justify-center">
+            <div class="text-slate-400">無法加載預告片</div>
+          </div>
+
+          <!-- 預告片視頻 -->
+          <div v-else-if="trailerData?.results && trailerData.results.length > 0" class="aspect-video">
+            <iframe v-if="trailerData.results[0]" :src="`https://www.youtube.com/embed/${trailerData.results[0].key}`"
+              title="Movie Trailer" class="w-full h-full" frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullscreen></iframe>
+          </div>
+
+          <!-- 沒有預告片 -->
+          <div v-else class="aspect-video bg-slate-800 flex items-center justify-center text-slate-400">
+            此電影沒有可用的預告片
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </section>
 </template>
 
@@ -80,6 +132,7 @@ const emit = defineEmits<{
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+  line-clamp: 3;
   overflow: hidden;
 }
 </style>
