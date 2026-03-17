@@ -5,7 +5,7 @@ import { useGetMovieTrailer } from '../api/useGetMovieTrailer'
 
 const { movie } = defineProps<{
   movie: Movie
-  similarMovies: Movie[]
+  similarMovies?: Movie[]
 }>()
 
 const emit = defineEmits<{

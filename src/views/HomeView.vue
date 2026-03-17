@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGetTrendingMovies } from '../api/useGetTrendingMovies'
+import { useGetMovieGenres } from '../api/useMovieGenres'
 import type { Movie } from '../types/movies'
 import { IMAGE_BASE_URL } from '../constants/baseUrl'
 import HeroSection from '../components/HeroSection.vue'
@@ -11,7 +12,51 @@ import PremiumBanner from '../components/PremiumBanner.vue'
 
 const router = useRouter()
 
-const GENRES = ["全部", "動作", "冒險", "科幻", "劇情", "恐怖", "動畫", "喜劇"]
+// 簡體轉繁體翻譯表
+const genreTranslations: Record<string, string> = {
+  '动作': '動作',
+  '冒险': '冒險',
+  '动画': '動畫',
+  '喜剧': '喜劇',
+  '犯罪': '犯罪',
+  '纪录': '紀錄',
+  '剧情': '劇情',
+  '家庭': '家庭',
+  '奇幻': '奇幻',
+  '历史': '歷史',
+  '恐怖': '恐怖',
+  '音乐': '音樂',
+  '悬疑': '懸疑',
+  '爱情': '愛情',
+  '浪漫': '浪漫',
+  '科幻': '科幻',
+  '电视电影': '電視電影',
+  '惊悚': '驚悚',
+  '战争': '戰爭',
+  '西部': '西部',
+  '恐怖片': '恐怖片',
+  '运动': '運動',
+  '脱口秀': '脫口秀'
+}
+
+const { data: genreData } = useGetMovieGenres()
+
+const genres = computed(() => {
+  const genreNames = (genreData.value?.genres ?? []).map(g =>
+    genreTranslations[g.name] || g.name
+  )
+  return ["全部", ...genreNames]
+})
+
+// 建立繁體名稱和類型 ID 的對應
+const genreIdMap = computed(() => {
+  const map: Record<string, number> = {}
+  genreData.value?.genres?.forEach(g => {
+    const traditionalName = genreTranslations[g.name] || g.name
+    map[traditionalName] = g.id
+  })
+  return map
+})
 
 const mockCast = [
   { name: "提摩西夏勒梅", role: "飾 主角", img: "https://i.pravatar.cc/150?u=a1" },
@@ -21,7 +66,7 @@ const mockCast = [
 
 const { data: trendingData } = useGetTrendingMovies()
 
-const movies = computed<Movie[]>(() =>
+const allMovies = computed<Movie[]>(() =>
   (trendingData.value?.results ?? []).map((m): Movie => ({
     id: m.id,
     title: m.title || m.name || '',
@@ -32,14 +77,31 @@ const movies = computed<Movie[]>(() =>
     backdrop: m.backdrop_path ? `${IMAGE_BASE_URL}/w1280${m.backdrop_path}` : '',
     poster: m.poster_path ? `${IMAGE_BASE_URL}/w500${m.poster_path}` : '',
     description: m.overview || '暫無簡介',
-    cast: mockCast
+    cast: mockCast,
+    genreIds: m.genre_ids
   }))
 )
 
 const activeGenre = ref("全部")
 const featuredMovie = ref<Movie | null>(null)
 
-watch(movies, (val) => {
+// 根據選中的類型篩選電影
+const movies = computed<Movie[]>(() => {
+  if (activeGenre.value === "全部") {
+    return allMovies.value
+  }
+
+  const selectedGenreId = genreIdMap.value[activeGenre.value]
+  if (!selectedGenreId) {
+    return allMovies.value
+  }
+
+  return allMovies.value.filter(movie =>
+    movie.genreIds?.includes(selectedGenreId)
+  )
+})
+
+watch(allMovies, (val) => {
   if (val.length && !featuredMovie.value) {
     featuredMovie.value = val[0] ?? null
   }
@@ -58,7 +120,7 @@ const goToDetail = (movie: Movie) => {
       @view-detail="goToDetail(featuredMovie!)"
     />
     <main class="px-6 md:px-12 -mt-16 relative z-10 pb-20">
-      <GenreFilter :genres="GENRES" v-model="activeGenre" />
+      <GenreFilter :genres="genres" v-model="activeGenre" />
       <div class="space-y-12">
         <MovieGrid :movies="movies" @select-movie="goToDetail" />
         <PremiumBanner :movies="movies" />

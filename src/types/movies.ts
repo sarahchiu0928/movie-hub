@@ -8,6 +8,7 @@ export interface TmdbMovie {
   backdrop_path: string | null
   poster_path: string | null
   overview: string
+  genre_ids?: number[]
 }
 
 export interface Actor {
@@ -27,6 +28,7 @@ export interface Movie {
   poster: string
   description: string
   cast?: Actor[]
+  genreIds?: number[]
 }
 
 export interface TmdbVideo {
@@ -54,4 +56,13 @@ order: number
 export interface TmdbCredits {
 id: number
 cast: TmdbCast[]
+}
+
+export interface Genre {
+id: number
+name: string
+}
+
+export interface GenreResponse {
+genres: Genre[]
 }
