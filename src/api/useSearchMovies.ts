@@ -1,3 +1,4 @@
+// 搜尋電影
 import { useQuery, type UseQueryOptions } from '@tanstack/vue-query'
 import { computed, type Ref } from 'vue'
 import { axiosInstance } from '../utils/axiosInstance'
@@ -25,7 +26,7 @@ export const searchMoviesQueryKey = (query: string) => ['/search/movie', query]
  */
 export const searchMoviesQueryFn = async (query: string): Promise<SearchMoviesResponse> => {
   const res = await axiosInstance.get<SearchMoviesResponse>('/search/movie', {
-    params: { query, language: 'zh-TW' }
+    params: { query, language: 'zh-TW' },
   })
   return res.data
 }

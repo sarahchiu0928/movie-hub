@@ -1,4 +1,5 @@
-import { useQuery, type UseQueryOptions } from "@tanstack/vue-query";
+// 取得電影預告
+import { useQuery, type UseQueryOptions } from '@tanstack/vue-query'
 import { computed, type Ref } from 'vue'
 import { axiosInstance } from '../utils/axiosInstance'
 import type { TmdbVideo } from '../types/movies'
@@ -6,14 +7,11 @@ import type { PageResponseGenerics } from '../types/responseGenerics'
 
 type MovieVideosResponse = PageResponseGenerics<TmdbVideo>
 
-export const movieVideosQueryKey = (movieId: number) => [
-'/movie/videos',
-movieId
-]
+export const movieVideosQueryKey = (movieId: number) => ['/movie/videos', movieId]
 
 export const movieVideosQueryFn = async (movieId: number): Promise<MovieVideosResponse> => {
   const res = await axiosInstance.get<MovieVideosResponse>(`/movie/${movieId}/videos`, {
-    params: { language: 'zh-TW' }
+    params: { language: 'zh-TW' },
   })
   return res.data
 }

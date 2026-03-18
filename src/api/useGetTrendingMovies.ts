@@ -1,3 +1,4 @@
+// 取得熱門電影
 import { useQuery, type UseQueryOptions } from '@tanstack/vue-query'
 import { axiosInstance } from '../utils/axiosInstance'
 import type { TmdbMovie } from '../types/movies'
@@ -9,12 +10,14 @@ const trendingMoviesQueryKey = ['/trending', 'movie', 'week']
 
 const trendingMoviesQueryFn = async () => {
   const res = await axiosInstance.get<TrendingMoviesResponse>('/trending/movie/week', {
-    params: { language: 'zh-TW' }
+    params: { language: 'zh-TW' },
   })
   return res.data
 }
 // vue query
-export const useGetTrendingMovies = (options?: Omit<UseQueryOptions<TrendingMoviesResponse>, 'queryKey' | 'queryFn'>) => {
+export const useGetTrendingMovies = (
+  options?: Omit<UseQueryOptions<TrendingMoviesResponse>, 'queryKey' | 'queryFn'>
+) => {
   return useQuery<TrendingMoviesResponse>({
     queryKey: trendingMoviesQueryKey,
     queryFn: trendingMoviesQueryFn,
