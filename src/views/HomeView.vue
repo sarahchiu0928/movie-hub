@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGetTrendingMovies } from '../api/useGetTrendingMovies'
 import { useGetMovieGenres } from '../api/useMovieGenres'
+import { useGetMovieDetail } from '../api/useGetMovieDetail'
 import type { Movie } from '../types/movies'
 import { IMAGE_BASE_URL } from '../constants/baseUrl'
 import { genreTranslations } from '../constants/genreTranslations'
@@ -14,6 +15,7 @@ const router = useRouter()
 
 const { data: genreData } = useGetMovieGenres()
 
+// 類型
 const genres = computed(() => {
   const genreNames = (genreData.value?.genres ?? []).map((g) => genreTranslations[g.name] || g.name)
   return ['全部', ...genreNames]
@@ -28,6 +30,13 @@ const genreIdMap = computed(() => {
   })
   return map
 })
+
+// 格式化時長
+const formatDuration = (minutes: number) => {
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  return `${hours}h ${mins}m`
+}
 
 // 建立類型 ID 和繁體名稱的對應（用於反向查詢）
 const genreIdToNameMap = computed(() => {
@@ -48,7 +57,7 @@ const allMovies = computed<Movie[]>(() =>
       title: m.title || m.name || '',
       rating: Math.round(m.vote_average * 10) / 10,
       year: m.release_date?.slice(0, 4) || m.first_air_date?.slice(0, 4) || '2024',
-      duration: '2h 88m',
+      duration: m.runtime ? formatDuration(m.runtime) : '未知',
       genre:
         (m.genre_ids ?? [])
           .map((id) => genreIdToNameMap.value[id])
@@ -66,6 +75,22 @@ console.log(allMovies.value)
 
 const activeGenre = ref('全部')
 const featuredMovie = ref<Movie | null>(null)
+
+const featuredMovieId = computed(() => (featuredMovie.value?.id ? String(featuredMovie.value.id) : ''))
+
+const { data: rawFeaturedMovie } = useGetMovieDetail(featuredMovieId)
+
+const displayFeaturedMovie = computed<Movie | null>(() => {
+  if (!featuredMovie.value || !rawFeaturedMovie.value) return featuredMovie.value
+
+  return {
+    ...featuredMovie.value,
+    duration: rawFeaturedMovie.value.runtime
+      ? formatDuration(rawFeaturedMovie.value.runtime)
+      : featuredMovie.value.duration,
+    description: rawFeaturedMovie.value.overview || featuredMovie.value.description,
+  }
+})
 
 // 根據選中的類型篩選電影
 const movies = computed<Movie[]>(() => {
@@ -98,7 +123,11 @@ const goToDetail = (movie: Movie) => {
 
 <template>
   <div class="w-full">
-    <HeroSection v-if="featuredMovie" :movie="featuredMovie" @view-detail="goToDetail(featuredMovie!)" />
+    <HeroSection
+      v-if="displayFeaturedMovie"
+      :movie="displayFeaturedMovie"
+      @view-detail="goToDetail(displayFeaturedMovie!)"
+    />
     <main class="px-6 md:px-12 -mt-16 relative z-10 pb-20">
       <GenreFilter :genres="genres" v-model="activeGenre" />
       <div class="space-y-12">
