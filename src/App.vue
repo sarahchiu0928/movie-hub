@@ -15,9 +15,11 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 <template>
   <div class="min-h-screen bg-slate-950 text-white font-sans selection:bg-indigo-500/30">
     <TheNavbar :scrolled="scrolled" />
-    <transition name="page" mode="out-in">
-      <RouterView :key="route.fullPath" />
-    </transition>
+    <RouterView v-slot="{ Component }">
+      <transition name="page" mode="out-in">
+        <component :is="Component" :key="route.fullPath" />
+      </transition>
+    </RouterView>
     <TheFooter />
   </div>
 </template>
