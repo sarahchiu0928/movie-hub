@@ -5,7 +5,7 @@ import SearchView from '../views/SearchView.vue'
 import WatchlistView from '../views/WatchlistView.vue'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: HomeView },
     { path: '/movie/:id', name: 'movie-detail', component: MovieDetailView },
