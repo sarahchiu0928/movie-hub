@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useSearchMovies } from '../api/useSearchMovies'
 import { IMAGE_BASE_URL } from '../constants/baseUrl'
@@ -11,6 +11,21 @@ defineProps<{
 
 const { user, logout, loginWithGoogle } = useAuth()
 const showUserMenu = ref(false)
+const userMenuRef = ref<HTMLDivElement | null>(null)
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (userMenuRef.value && !userMenuRef.value.contains(event.target as Node)) {
+    showUserMenu.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 const handleLogout = async () => {
   showUserMenu.value = false
@@ -141,7 +156,7 @@ const handleBlur = () => {
       </button>
 
       <!-- 已登入：顯示頭像與下拉選單 -->
-      <div v-else class="relative">
+      <div v-else class="relative" ref="userMenuRef">
         <button @click="showUserMenu = !showUserMenu" class="flex items-center gap-2 focus:outline-none">
           <img
             v-if="user.photoURL"
