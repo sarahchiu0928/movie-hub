@@ -1,327 +1,490 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CinePulse - 電影探索平台</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue 3 Global Build -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
 
-        /* 背景大圖切換動畫 */
-        .fade-enter-active,
-        .fade-leave-active {
-            transition: opacity 0.8s ease;
-        }
-        .fade-enter-from,
-        .fade-leave-to {
-            opacity: 0;
-        }
+      /* 背景大圖切換動畫 */
+      .fade-enter-active,
+      .fade-leave-active {
+        transition: opacity 0.8s ease;
+      }
+      .fade-enter-from,
+      .fade-leave-to {
+        opacity: 0;
+      }
 
-        /* 漸層文字 */
-        .text-gradient {
-            background: linear-gradient(to right, #ffffff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+      /* 漸層文字 */
+      .text-gradient {
+        background: linear-gradient(to right, #ffffff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
     </style>
-</head>
-<body class="bg-slate-950 text-white font-sans selection:bg-indigo-500/30">
+  </head>
+  <body class="bg-slate-950 text-white font-sans selection:bg-indigo-500/30">
     <div id="app">
-        <!-- 導航欄 Navbar -->
-        <nav
-          :class="[
+      <!-- 導航欄 Navbar -->
+      <nav
+        :class="[
             'fixed top-0 w-full z-50 transition-all duration-500 flex items-center justify-between px-6 py-4',
             scrolled ? 'bg-slate-950/90 backdrop-blur-md shadow-lg border-b border-white/10' : 'bg-transparent'
           ]"
-        >
-          <div class="flex items-center gap-8">
-            <div class="flex items-center gap-2 cursor-pointer group">
-              <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center group-hover:bg-indigo-500 transition-colors">
-                <!-- TrendingUp Icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
-              </div>
-              <h1 class="text-2xl font-black tracking-tighter text-gradient">CINEPULSE</h1>
+      >
+        <div class="flex items-center gap-8">
+          <div class="flex items-center gap-2 cursor-pointer group">
+            <div
+              class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center group-hover:bg-indigo-500 transition-colors"
+            >
+              <!-- TrendingUp Icon -->
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                <polyline points="16 7 22 7 22 13"></polyline>
+              </svg>
             </div>
-
-            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
-              <a href="#" class="hover:text-white transition-colors">首頁</a>
-              <a href="#" class="text-white underline underline-offset-8 decoration-indigo-500">電影</a>
-              <a href="#" class="hover:text-white transition-colors">影集</a>
-              <a href="#" class="hover:text-white transition-colors">我的清單</a>
-            </div>
+            <h1 class="text-2xl font-black tracking-tighter text-gradient">MovieHub</h1>
           </div>
 
-          <div class="flex items-center gap-4">
-            <div class="relative group hidden sm:block">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              </span>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="搜尋電影、演員..."
-                class="bg-slate-900/50 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-slate-900 w-64 transition-all"
-              />
-            </div>
-            <button class="p-2 text-slate-400 hover:text-white transition-colors relative">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
-              <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-950"></span>
-            </button>
-            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 cursor-pointer border-2 border-white/20 hover:border-white transition-all"></div>
+          <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
+            <a href="#" class="hover:text-white transition-colors">首頁</a>
+            <a href="#" class="text-white underline underline-offset-8 decoration-indigo-500">電影</a>
+            <a href="#" class="hover:text-white transition-colors">影集</a>
+            <a href="#" class="hover:text-white transition-colors">我的清單</a>
           </div>
-        </nav>
+        </div>
 
-        <!-- 主視覺區域 Hero Section -->
-        <section class="relative h-[85vh] w-full overflow-hidden">
-          <div class="absolute inset-0">
-            <transition name="fade" mode="out-in">
-              <img
-                :key="selectedMovie.id"
-                :src="selectedMovie.backdrop"
-                :alt="selectedMovie.title"
-                class="w-full h-full object-cover"
-              />
-            </transition>
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
-            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/20 to-transparent"></div>
+        <div class="flex items-center gap-4">
+          <div class="relative group hidden sm:block">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="搜尋電影、演員..."
+              class="bg-slate-900/50 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-slate-900 w-64 transition-all"
+            />
           </div>
+          <button class="p-2 text-slate-400 hover:text-white transition-colors relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+            </svg>
+            <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-950"></span>
+          </button>
+          <div
+            class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 cursor-pointer border-2 border-white/20 hover:border-white transition-all"
+          ></div>
+        </div>
+      </nav>
 
-          <div class="absolute bottom-24 left-6 md:left-12 max-w-2xl space-y-6">
-            <div class="flex items-center gap-2 text-indigo-400 font-bold tracking-wider text-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
-              <span>今日熱門榜單第一名</span>
-            </div>
-            <h2 class="text-5xl md:text-7xl font-black leading-tight drop-shadow-2xl">
-              {{ selectedMovie.title }}
-            </h2>
-            <div class="flex items-center gap-4 text-sm font-semibold text-slate-300">
-              <span class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded backdrop-blur-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                {{ selectedMovie.rating }}
-              </span>
-              <span>{{ selectedMovie.year }}</span>
-              <span>{{ selectedMovie.duration }}</span>
-              <span class="border border-white/30 px-2 py-0.5 rounded text-[10px]">4K Ultra HD</span>
-            </div>
-            <p class="text-slate-300 text-lg leading-relaxed line-clamp-3">
-              {{ selectedMovie.description }}
-            </p>
+      <!-- 主視覺區域 Hero Section -->
+      <section class="relative h-[85vh] w-full overflow-hidden">
+        <div class="absolute inset-0">
+          <transition name="fade" mode="out-in">
+            <img
+              :key="selectedMovie.id"
+              :src="selectedMovie.backdrop"
+              :alt="selectedMovie.title"
+              class="w-full h-full object-cover"
+            />
+          </transition>
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/20 to-transparent"></div>
+        </div>
 
-            <div class="flex items-center gap-4 pt-4">
-              <button class="flex items-center gap-2 bg-white text-slate-950 px-8 py-3.5 rounded-xl font-bold hover:bg-indigo-50 transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-white/10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                立即播放
-              </button>
-              <button class="flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-8 py-3.5 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                更多資訊
-              </button>
-            </div>
+        <div class="absolute bottom-24 left-6 md:left-12 max-w-2xl space-y-6">
+          <div class="flex items-center gap-2 text-indigo-400 font-bold tracking-wider text-sm">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
+              ></path>
+            </svg>
+            <span>今日熱門榜單第一名</span>
           </div>
-        </section>
+          <h2 class="text-5xl md:text-7xl font-black leading-tight drop-shadow-2xl">{{ selectedMovie.title }}</h2>
+          <div class="flex items-center gap-4 text-sm font-semibold text-slate-300">
+            <span class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded backdrop-blur-sm">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="#fbbf24"
+                stroke="#fbbf24"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                ></polygon>
+              </svg>
+              {{ selectedMovie.rating }}
+            </span>
+            <span>{{ selectedMovie.year }}</span>
+            <span>{{ selectedMovie.duration }}</span>
+            <span class="border border-white/30 px-2 py-0.5 rounded text-[10px]">4K Ultra HD</span>
+          </div>
+          <p class="text-slate-300 text-lg leading-relaxed line-clamp-3">{{ selectedMovie.description }}</p>
 
-        <!-- 主要內容區 -->
-        <main class="px-6 md:px-12 -mt-16 relative z-10 pb-20">
-          <div class="flex items-center gap-3 overflow-x-auto pb-8 no-scrollbar">
+          <div class="flex items-center gap-4 pt-4">
             <button
-              v-for="genre in GENRES"
-              :key="genre"
-              @click="activeGenre = genre"
-              :class="[
+              class="flex items-center gap-2 bg-white text-slate-950 px-8 py-3.5 rounded-xl font-bold hover:bg-indigo-50 transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-white/10"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              立即播放
+            </button>
+            <button
+              class="flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-8 py-3.5 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              更多資訊
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 主要內容區 -->
+      <main class="px-6 md:px-12 -mt-16 relative z-10 pb-20">
+        <div class="flex items-center gap-3 overflow-x-auto pb-8 no-scrollbar">
+          <button
+            v-for="genre in GENRES"
+            :key="genre"
+            @click="activeGenre = genre"
+            :class="[
                 'px-6 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all border',
                 activeGenre === genre
                   ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20'
                   : 'bg-slate-900 border-white/5 text-slate-400 hover:border-white/20 hover:text-white'
               ]"
-            >
-              {{ genre }}
-            </button>
-          </div>
+          >
+            {{ genre }}
+          </button>
+        </div>
 
-          <div class="space-y-12">
-            <section>
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                  最近更新
-                </h3>
-                <a href="#" class="text-slate-400 hover:text-white flex items-center gap-1 text-sm font-medium transition-colors">
-                  查看全部
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </a>
-              </div>
-
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-                <div
-                  v-for="movie in MOCK_MOVIES"
-                  :key="movie.id"
-                  class="group relative cursor-pointer"
-                  @click="selectMovie(movie)"
+        <div class="space-y-12">
+          <section>
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-2xl font-bold flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#6366f1"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-                  <div class="aspect-[2/3] rounded-2xl overflow-hidden bg-slate-900 shadow-xl border border-white/5 transition-all duration-300 group-hover:scale-105 group-hover:border-indigo-500/50 group-hover:shadow-indigo-500/10">
-                    <img
-                      :src="movie.poster"
-                      :alt="movie.title"
-                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      loading="lazy"
-                    />
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                       <button class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center mb-3 transform translate-y-4 group-hover:translate-y-0 transition-transform shadow-lg">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="translate-x-0.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                       </button>
-                    </div>
-                  </div>
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                最近更新
+              </h3>
+              <a
+                href="#"
+                class="text-slate-400 hover:text-white flex items-center gap-1 text-sm font-medium transition-colors"
+              >
+                查看全部
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </a>
+            </div>
 
-                  <div class="mt-4 space-y-1">
-                    <h4 class="font-bold text-slate-100 truncate group-hover:text-indigo-400 transition-colors">
-                      {{ movie.title }}
-                    </h4>
-                    <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
-                      <span>{{ movie.year }} • {{ movie.genre.split(' / ')[0] }}</span>
-                      <div class="flex items-center gap-1 text-indigo-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                        {{ movie.rating }}
-                      </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+              <div
+                v-for="movie in MOCK_MOVIES"
+                :key="movie.id"
+                class="group relative cursor-pointer"
+                @click="selectMovie(movie)"
+              >
+                <div
+                  class="aspect-[2/3] rounded-2xl overflow-hidden bg-slate-900 shadow-xl border border-white/5 transition-all duration-300 group-hover:scale-105 group-hover:border-indigo-500/50 group-hover:shadow-indigo-500/10"
+                >
+                  <img
+                    :src="movie.poster"
+                    :alt="movie.title"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                  <div
+                    class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4"
+                  >
+                    <button
+                      class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center mb-3 transform translate-y-4 group-hover:translate-y-0 transition-transform shadow-lg"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="white"
+                        stroke="white"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="translate-x-0.5"
+                      >
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="mt-4 space-y-1">
+                  <h4 class="font-bold text-slate-100 truncate group-hover:text-indigo-400 transition-colors">
+                    {{ movie.title }}
+                  </h4>
+                  <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span>{{ movie.year }} • {{ movie.genre.split(' / ')[0] }}</span>
+                    <div class="flex items-center gap-1 text-indigo-400">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polygon
+                          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                        ></polygon>
+                      </svg>
+                      {{ movie.rating }}
                     </div>
                   </div>
                 </div>
               </div>
-            </section>
-          </div>
-        </main>
+            </div>
+          </section>
+        </div>
+      </main>
 
-        <footer class="px-12 py-16 border-t border-white/5 bg-slate-950/50">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-slate-500 text-sm">
-            <div class="col-span-2 md:col-span-1 space-y-4">
-               <div class="flex items-center gap-2">
-                  <span class="font-black text-xl tracking-tighter text-white">CINEPULSE</span>
-               </div>
-               <p>您的終極影視探索指南。</p>
+      <footer class="px-12 py-16 border-t border-white/5 bg-slate-950/50">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-slate-500 text-sm">
+          <div class="col-span-2 md:col-span-1 space-y-4">
+            <div class="flex items-center gap-2">
+              <span class="font-black text-xl tracking-tighter text-white">MovieHub</span>
             </div>
-            <div>
-              <h5 class="font-bold mb-4 text-slate-200">連結</h5>
-              <ul class="space-y-2">
-                <li>隱私權政策</li>
-                <li>使用條款</li>
-              </ul>
-            </div>
-            <div>
-              <h5 class="font-bold mb-4 text-slate-200">社群</h5>
-              <ul class="space-y-2">
-                <li>Instagram</li>
-                <li>Twitter (X)</li>
-              </ul>
-            </div>
-            <div>
-               <h5 class="font-bold mb-4 text-slate-200">版本</h5>
-               <p class="font-mono">v2.4.0</p>
-            </div>
+            <p>您的終極影視探索指南。</p>
           </div>
-        </footer>
+          <div>
+            <h5 class="font-bold mb-4 text-slate-200">連結</h5>
+            <ul class="space-y-2">
+              <li>隱私權政策</li>
+              <li>使用條款</li>
+            </ul>
+          </div>
+          <div>
+            <h5 class="font-bold mb-4 text-slate-200">社群</h5>
+            <ul class="space-y-2">
+              <li>Instagram</li>
+              <li>Twitter (X)</li>
+            </ul>
+          </div>
+          <div>
+            <h5 class="font-bold mb-4 text-slate-200">版本</h5>
+            <p class="font-mono">v2.4.0</p>
+          </div>
+        </div>
+      </footer>
     </div>
 
     <script>
-        const { createApp, ref, onMounted, onUnmounted } = Vue;
+      const { createApp, ref, onMounted, onUnmounted } = Vue
 
-        const MOCK_MOVIES = [
-          {
-            id: 1,
-            title: "沙丘：第二部",
-            rating: 8.8,
-            year: "2024",
-            duration: "2h 46m",
-            genre: "科幻 / 冒險",
-            backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=2000",
-            poster: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80&w=600",
-            description: "保羅·亞崔迪與弗瑞曼人聯手,對毀滅他家人的陰謀者展開報復,並努力阻止他所預見的慘烈未來。"
-          },
-          {
-            id: 2,
-            title: "奧本海默",
-            rating: 8.6,
-            year: "2023",
-            duration: "3h 0m",
-            genre: "傳記 / 歷史",
-            backdrop: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&q=80&w=2000",
-            poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=600",
-            description: "講述理論物理學家羅伯特·奧本海默研發原子彈的過程,以及他在此後面對的道德掙扎。"
-          },
-          {
-            id: 3,
-            title: "蜘蛛人:穿越新宇宙",
-            rating: 8.9,
-            year: "2023",
-            duration: "2h 20m",
-            genre: "動畫 / 動作",
-            backdrop: "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&q=80&w=2000",
-            poster: "https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&q=80&w=600",
-            description: "邁爾斯·摩拉斯在多重宇宙中展開冒險,遇見了一群新的蜘蛛人,但也面臨了前所未有的威脅。"
-          },
-          {
-            id: 4,
-            title: "捍衛任務 4",
-            rating: 7.9,
-            year: "2023",
-            duration: "2h 49m",
-            genre: "動作 / 犯罪",
-            backdrop: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?auto=format&fit=crop&q=80&w=2000",
-            poster: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&q=80&w=600",
-            description: "約翰·維克發現了擊敗高桌會的途徑,但在獲得自由之前,他必須面對一位強大的新敵人。"
-          },
-          {
-            id: 5,
-            title: "可憐的東西",
-            rating: 8.1,
-            year: "2023",
-            duration: "2h 21m",
-            genre: "劇情 / 奇幻",
-            backdrop: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=2000",
-            poster: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&q=80&w=600",
-            description: "一名年輕女子被一名非傳統科學家救活後,開始了她在維多利亞時代的自我探索與解放之旅。"
+      const MOCK_MOVIES = [
+        {
+          id: 1,
+          title: '沙丘：第二部',
+          rating: 8.8,
+          year: '2024',
+          duration: '2h 46m',
+          genre: '科幻 / 冒險',
+          backdrop: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=2000',
+          poster: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80&w=600',
+          description: '保羅·亞崔迪與弗瑞曼人聯手,對毀滅他家人的陰謀者展開報復,並努力阻止他所預見的慘烈未來。',
+        },
+        {
+          id: 2,
+          title: '奧本海默',
+          rating: 8.6,
+          year: '2023',
+          duration: '3h 0m',
+          genre: '傳記 / 歷史',
+          backdrop: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&q=80&w=2000',
+          poster: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=600',
+          description: '講述理論物理學家羅伯特·奧本海默研發原子彈的過程,以及他在此後面對的道德掙扎。',
+        },
+        {
+          id: 3,
+          title: '蜘蛛人:穿越新宇宙',
+          rating: 8.9,
+          year: '2023',
+          duration: '2h 20m',
+          genre: '動畫 / 動作',
+          backdrop: 'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&q=80&w=2000',
+          poster: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&q=80&w=600',
+          description: '邁爾斯·摩拉斯在多重宇宙中展開冒險,遇見了一群新的蜘蛛人,但也面臨了前所未有的威脅。',
+        },
+        {
+          id: 4,
+          title: '捍衛任務 4',
+          rating: 7.9,
+          year: '2023',
+          duration: '2h 49m',
+          genre: '動作 / 犯罪',
+          backdrop: 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?auto=format&fit=crop&q=80&w=2000',
+          poster: 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&q=80&w=600',
+          description: '約翰·維克發現了擊敗高桌會的途徑,但在獲得自由之前,他必須面對一位強大的新敵人。',
+        },
+        {
+          id: 5,
+          title: '可憐的東西',
+          rating: 8.1,
+          year: '2023',
+          duration: '2h 21m',
+          genre: '劇情 / 奇幻',
+          backdrop: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=2000',
+          poster: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&q=80&w=600',
+          description: '一名年輕女子被一名非傳統科學家救活後,開始了她在維多利亞時代的自我探索與解放之旅。',
+        },
+      ]
+
+      createApp({
+        setup() {
+          const activeGenre = ref('全部')
+          const searchQuery = ref('')
+          const scrolled = ref(false)
+          const selectedMovie = ref(MOCK_MOVIES[0])
+          const GENRES = ['全部', '動作', '冒險', '科幻', '劇情', '恐怖', '動畫', '喜劇']
+
+          const handleScroll = () => {
+            scrolled.value = window.scrollY > 50
           }
-        ];
 
-        createApp({
-          setup() {
-            const activeGenre = ref("全部");
-            const searchQuery = ref("");
-            const scrolled = ref(false);
-            const selectedMovie = ref(MOCK_MOVIES[0]);
-            const GENRES = ["全部", "動作", "冒險", "科幻", "劇情", "恐怖", "動畫", "喜劇"];
-
-            const handleScroll = () => {
-              scrolled.value = window.scrollY > 50;
-            };
-
-            const selectMovie = (movie) => {
-              selectedMovie.value = movie;
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-
-            onMounted(() => {
-              window.addEventListener('scroll', handleScroll);
-            });
-
-            onUnmounted(() => {
-              window.removeEventListener('scroll', handleScroll);
-            });
-
-            return {
-              activeGenre,
-              searchQuery,
-              scrolled,
-              selectedMovie,
-              MOCK_MOVIES,
-              GENRES,
-              selectMovie
-            };
+          const selectMovie = (movie) => {
+            selectedMovie.value = movie
+            window.scrollTo({ top: 0, behavior: 'smooth' })
           }
-        }).mount('#app');
+
+          onMounted(() => {
+            window.addEventListener('scroll', handleScroll)
+          })
+
+          onUnmounted(() => {
+            window.removeEventListener('scroll', handleScroll)
+          })
+
+          return {
+            activeGenre,
+            searchQuery,
+            scrolled,
+            selectedMovie,
+            MOCK_MOVIES,
+            GENRES,
+            selectMovie,
+          }
+        },
+      }).mount('#app')
     </script>
-</body>
+  </body>
 </html>
