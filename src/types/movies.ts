@@ -8,6 +8,7 @@ export interface TmdbMovie {
   backdrop_path: string | null
   poster_path: string | null
   overview: string
+  runtime?: number
   genre_ids?: number[]
   genres?: Genre[]
 }
