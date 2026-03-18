@@ -48,7 +48,7 @@ const handlePlayClick = () => {
 <template>
   <div class="relative min-h-screen pb-20 overflow-x-hidden">
     <!-- 1. 沉浸式背景圖層 -->
-    <div class="absolute top-0 left-0 w-full h-[100vh] z-0">
+    <div class="absolute top-0 left-0 w-full h-[100vh] z-0 overflow-hidden">
       <img :src="movie.backdrop" class="w-full h-full object-cover opacity-40 scale-105" />
       <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
       <div class="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-transparent"></div>
