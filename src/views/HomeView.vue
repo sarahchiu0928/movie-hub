@@ -8,7 +8,6 @@ import { IMAGE_BASE_URL } from '../constants/baseUrl'
 import HeroSection from '../components/HeroSection.vue'
 import GenreFilter from '../components/GenreFilter.vue'
 import MovieGrid from '../components/MovieGrid.vue'
-import PremiumBanner from '../components/PremiumBanner.vue'
 
 const router = useRouter()
 
@@ -114,16 +113,11 @@ const goToDetail = (movie: Movie) => {
 
 <template>
   <div class="w-full">
-    <HeroSection
-      v-if="featuredMovie"
-      :movie="featuredMovie"
-      @view-detail="goToDetail(featuredMovie!)"
-    />
+    <HeroSection v-if="featuredMovie" :movie="featuredMovie" @view-detail="goToDetail(featuredMovie!)" />
     <main class="px-6 md:px-12 -mt-16 relative z-10 pb-20">
       <GenreFilter :genres="genres" v-model="activeGenre" />
       <div class="space-y-12">
         <MovieGrid :movies="movies" @select-movie="goToDetail" />
-        <PremiumBanner :movies="movies" />
       </div>
     </main>
   </div>

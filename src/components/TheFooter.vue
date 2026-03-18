@@ -19,24 +19,8 @@
         </p>
       </div>
       <div>
-        <h5 class="font-bold mb-4 text-slate-200">連結</h5>
-        <ul class="text-sm text-slate-500 space-y-2">
-          <li class="hover:text-indigo-400 cursor-pointer transition-colors">隱私權政策</li>
-          <li class="hover:text-indigo-400 cursor-pointer transition-colors">使用條款</li>
-          <li class="hover:text-indigo-400 cursor-pointer transition-colors">廣告合作</li>
-        </ul>
-      </div>
-      <div>
-        <h5 class="font-bold mb-4 text-slate-200">社群</h5>
-        <ul class="text-sm text-slate-500 space-y-2">
-          <li class="hover:text-indigo-400 cursor-pointer transition-colors">Instagram</li>
-          <li class="hover:text-indigo-400 cursor-pointer transition-colors">Twitter (X)</li>
-          <li class="hover:text-indigo-400 cursor-pointer transition-colors">Facebook</li>
-        </ul>
-      </div>
-      <div>
         <h5 class="font-bold mb-4 text-slate-200">版本資訊</h5>
-        <p class="text-[10px] text-slate-600 font-mono">v2.4.0-stable | 2026.03</p>
+        <p class="text-[10px] text-slate-600 font-mono">邱書葶 | 2026.03.18</p>
       </div>
     </div>
   </footer>
