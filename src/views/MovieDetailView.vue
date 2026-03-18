@@ -17,12 +17,20 @@ const { data: rawMovie } = useGetMovieDetail(movieId)
 const movie = computed<Movie | null>(() => {
   const m = rawMovie.value
   if (!m) return null
+
+  // 格式化時長
+  const formatDuration = (minutes: number) => {
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    return `${hours}h ${mins}m`
+  }
+
   return {
     id: m.id,
     title: m.title || m.name || '',
     rating: Math.round(m.vote_average * 10) / 10,
     year: m.release_date?.slice(0, 4) || m.first_air_date?.slice(0, 4) || '2024',
-    duration: '2h 15m',
+    duration: m.runtime ? formatDuration(m.runtime) : '未知',
     genre: m.genres?.map((g) => genreTranslations[g.name] || g.name).join(' / ') || '未分類',
     backdrop: m.backdrop_path ? `${IMAGE_BASE_URL}/w1280${m.backdrop_path}` : '',
     poster: m.poster_path ? `${IMAGE_BASE_URL}/w500${m.poster_path}` : '',
