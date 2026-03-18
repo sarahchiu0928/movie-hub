@@ -5,38 +5,12 @@ import { useGetTrendingMovies } from '../api/useGetTrendingMovies'
 import { useGetMovieGenres } from '../api/useMovieGenres'
 import type { Movie } from '../types/movies'
 import { IMAGE_BASE_URL } from '../constants/baseUrl'
+import { genreTranslations } from '../constants/genreTranslations'
 import HeroSection from '../components/HeroSection.vue'
 import GenreFilter from '../components/GenreFilter.vue'
 import MovieGrid from '../components/MovieGrid.vue'
 
 const router = useRouter()
-
-// 簡體轉繁體翻譯表
-const genreTranslations: Record<string, string> = {
-  动作: '動作',
-  冒险: '冒險',
-  动画: '動畫',
-  喜剧: '喜劇',
-  犯罪: '犯罪',
-  纪录: '紀錄',
-  剧情: '劇情',
-  家庭: '家庭',
-  奇幻: '奇幻',
-  历史: '歷史',
-  恐怖: '恐怖',
-  音乐: '音樂',
-  悬疑: '懸疑',
-  爱情: '愛情',
-  浪漫: '浪漫',
-  科幻: '科幻',
-  电视电影: '電視電影',
-  惊悚: '驚悚',
-  战争: '戰爭',
-  西部: '西部',
-  恐怖片: '恐怖片',
-  运动: '運動',
-  脱口秀: '脫口秀',
-}
 
 const { data: genreData } = useGetMovieGenres()
 

@@ -9,6 +9,7 @@ export interface TmdbMovie {
   poster_path: string | null
   overview: string
   genre_ids?: number[]
+  genres?: Genre[]
 }
 
 export interface Actor {

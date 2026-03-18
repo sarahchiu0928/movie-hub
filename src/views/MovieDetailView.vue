@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useGetMovieDetail } from '../api/useGetMovieDetail'
 import type { Movie } from '../types/movies'
 import { IMAGE_BASE_URL } from '../constants/baseUrl'
+import { genreTranslations } from '../constants/genreTranslations'
 import MovieDetail from '../components/MovieDetail.vue'
 
 const route = useRoute()
@@ -22,7 +23,7 @@ const movie = computed<Movie | null>(() => {
     rating: Math.round(m.vote_average * 10) / 10,
     year: m.release_date?.slice(0, 4) || m.first_air_date?.slice(0, 4) || '2024',
     duration: '2h 15m',
-    genre: '動作 / 科幻',
+    genre: m.genres?.map((g) => genreTranslations[g.name] || g.name).join(' / ') || '未分類',
     backdrop: m.backdrop_path ? `${IMAGE_BASE_URL}/w1280${m.backdrop_path}` : '',
     poster: m.poster_path ? `${IMAGE_BASE_URL}/w500${m.poster_path}` : '',
     description: m.overview || '暫無簡介',
