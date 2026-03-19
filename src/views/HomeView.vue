@@ -71,7 +71,6 @@ const allMovies = computed<Movie[]>(() =>
     })
   )
 )
-console.log(allMovies.value)
 
 const activeGenre = ref('全部')
 const featuredMovie = ref<Movie | null>(null)
