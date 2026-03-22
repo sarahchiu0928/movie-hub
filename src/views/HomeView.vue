@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGetTrendingMovies } from '../api/useGetTrendingMovies'
 import { useGetMovieGenres } from '../api/useMovieGenres'
@@ -48,28 +48,28 @@ const genreIdToNameMap = computed(() => {
   return map
 })
 
-const { data: trendingData } = useGetTrendingMovies()
+const { data: trendingData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetTrendingMovies()
+
+const toMovie = (m: any): Movie => ({
+  id: m.id,
+  title: m.title || m.name || '',
+  rating: Math.round(m.vote_average * 10) / 10,
+  year: m.release_date?.slice(0, 4) || m.first_air_date?.slice(0, 4) || '2024',
+  duration: m.runtime ? formatDuration(m.runtime) : '未知',
+  genre:
+    (m.genre_ids ?? [])
+      .map((id: number) => genreIdToNameMap.value[id])
+      .filter(Boolean)
+      .join(' / ') || '未分類',
+  backdrop: m.backdrop_path ? `${IMAGE_BASE_URL}/w1280${m.backdrop_path}` : '',
+  poster: m.poster_path ? `${IMAGE_BASE_URL}/w500${m.poster_path}` : '',
+  description: m.overview || '暫無簡介',
+  cast: [],
+  genreIds: m.genre_ids,
+})
 
 const allMovies = computed<Movie[]>(() =>
-  (trendingData.value?.results ?? []).map(
-    (m): Movie => ({
-      id: m.id,
-      title: m.title || m.name || '',
-      rating: Math.round(m.vote_average * 10) / 10,
-      year: m.release_date?.slice(0, 4) || m.first_air_date?.slice(0, 4) || '2024',
-      duration: m.runtime ? formatDuration(m.runtime) : '未知',
-      genre:
-        (m.genre_ids ?? [])
-          .map((id) => genreIdToNameMap.value[id])
-          .filter(Boolean)
-          .join(' / ') || '未分類',
-      backdrop: m.backdrop_path ? `${IMAGE_BASE_URL}/w1280${m.backdrop_path}` : '',
-      poster: m.poster_path ? `${IMAGE_BASE_URL}/w500${m.poster_path}` : '',
-      description: m.overview || '暫無簡介',
-      cast: [],
-      genreIds: m.genre_ids,
-    })
-  )
+  (trendingData.value?.pages ?? []).flatMap((page) => page.results.map(toMovie))
 )
 
 const activeGenre = ref('全部')
@@ -118,19 +118,42 @@ watch(
 const goToDetail = (movie: Movie) => {
   router.push({ name: 'movie-detail', params: { id: movie.id } })
 }
+
+// Infinite scroll — Intersection Observer 監聽哨兵元素
+const sentinel = ref<HTMLElement | null>(null)
+let observer: IntersectionObserver | null = null
+
+onMounted(() => {
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0]?.isIntersecting && hasNextPage.value && !isFetchingNextPage.value) {
+        fetchNextPage()
+      }
+    },
+    { threshold: 0.1 }
+  )
+  if (sentinel.value) observer.observe(sentinel.value)
+})
+
+onUnmounted(() => {
+  observer?.disconnect()
+})
 </script>
 
 <template>
   <div class="w-full">
-    <HeroSection
-      v-if="displayFeaturedMovie"
-      :movie="displayFeaturedMovie"
-      @view-detail="goToDetail(displayFeaturedMovie!)"
-    />
+    <HeroSection v-if="displayFeaturedMovie" :movie="displayFeaturedMovie"
+      @view-detail="goToDetail(displayFeaturedMovie!)" />
     <main class="px-6 md:px-12 -mt-16 relative z-10 pb-20">
       <GenreFilter :genres="genres" v-model="activeGenre" />
       <div class="space-y-12">
         <MovieGrid :movies="movies" @select-movie="goToDetail" />
+      </div>
+
+      <!-- 哨兵元素：進入視窗時觸發載入下一頁 -->
+      <div ref="sentinel" class="h-10 flex items-center justify-center mt-6">
+        <span v-if="isFetchingNextPage" class="text-slate-400 text-sm">載入中…</span>
+        <span v-else-if="!hasNextPage && allMovies.length > 0" class="text-slate-600 text-sm">已顯示全部電影</span>
       </div>
     </main>
   </div>

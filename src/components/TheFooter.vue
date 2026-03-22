@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <footer class="px-12 py-16 border-t border-white/5 bg-slate-950/50">
+  <footer class="fixed bottom-0 left-0 right-0 z-50 px-12 py-4 border-t border-white/5 bg-slate-950/90 backdrop-blur-sm">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-12">
       <div class="col-span-2 md:col-span-1 space-y-4">
         <div class="flex items-center gap-2">

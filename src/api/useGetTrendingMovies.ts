@@ -1,5 +1,5 @@
 // 取得熱門電影
-import { useQuery, type UseQueryOptions } from '@tanstack/vue-query'
+import { useInfiniteQuery } from '@tanstack/vue-query'
 import { axiosInstance } from '../utils/axiosInstance'
 import type { TmdbMovie } from '../types/movies'
 import type { PageResponseGenerics } from '../types/responseGenerics'
@@ -8,19 +8,23 @@ type TrendingMoviesResponse = PageResponseGenerics<TmdbMovie>
 
 const trendingMoviesQueryKey = ['/trending', 'movie', 'week']
 
-const trendingMoviesQueryFn = async () => {
+const trendingMoviesQueryFn = async ({ pageParam }: { pageParam: unknown }) => {
   const res = await axiosInstance.get<TrendingMoviesResponse>('/trending/movie/week', {
-    params: { language: 'zh-TW' },
+    params: { language: 'zh-TW', page: (pageParam as number) ?? 1 },
   })
   return res.data
 }
-// vue query
-export const useGetTrendingMovies = (
-  options?: Omit<UseQueryOptions<TrendingMoviesResponse>, 'queryKey' | 'queryFn'>
-) => {
-  return useQuery<TrendingMoviesResponse>({
+
+export const useGetTrendingMovies = () => {
+  return useInfiniteQuery<TrendingMoviesResponse>({
     queryKey: trendingMoviesQueryKey,
     queryFn: trendingMoviesQueryFn,
-    ...options,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.page < lastPage.total_pages) {
+        return lastPage.page + 1
+      }
+      return undefined
+    },
   })
 }
