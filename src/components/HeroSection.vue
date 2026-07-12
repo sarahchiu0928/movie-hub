@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import type { Movie } from '../types/movies'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGetMovieTrailer } from '../api/useGetMovieTrailer'
 import RatingBadge from './RatingBadge.vue'
 
 const { movie } = defineProps<{
   movie: Movie
-  similarMovies?: Movie[]
 }>()
 
-const emit = defineEmits<{
-  viewDetail: []
-}>()
+const router = useRouter()
+
+const goToDetail = () => {
+  router.push({ name: 'movie-detail', params: { id: movie.id } })
+}
 
 const movieId = ref(0)
 const showTrailerModal = ref(false)
@@ -89,7 +91,7 @@ const handlePlayClick = () => {
           立即播放
         </button>
         <button
-          @click="emit('viewDetail')"
+          @click="goToDetail"
           class="flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-8 py-3.5 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10"
         >
           <svg

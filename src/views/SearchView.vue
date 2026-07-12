@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useSearchMovies } from '../api/useSearchMovies'
 import { IMAGE_BASE_URL } from '../constants/baseUrl'
-import { useAuth } from '../composables/useAuth'
-import { useWatchlist } from '../composables/useWatchlist'
+import { useUserStore } from '../stores/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,8 +12,9 @@ const router = useRouter()
 const query = computed(() => (route.query.q as string) || '')
 
 const { data, isFetching } = useSearchMovies(query)
-const { user } = useAuth()
-const { isInWatchlist, toggleWatchlist } = useWatchlist()
+const userStore = useUserStore()
+const { user } = storeToRefs(userStore)
+const { isInWatchlist, toggleWatchlist } = userStore
 
 const goToMovie = (id: number) => {
   router.push({ name: 'movie-detail', params: { id } })

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { useWatchlist } from '../composables/useWatchlist'
-import { useAuth } from '../composables/useAuth'
+import { storeToRefs } from 'pinia'
+import { useUserStore } from '../stores/user'
 
 const router = useRouter()
-const { user } = useAuth()
-const { watchlist, toggleWatchlist } = useWatchlist()
+const userStore = useUserStore()
+const { user, watchlist } = storeToRefs(userStore)
+const { toggleWatchlist } = userStore
 
 const goToMovie = (id: number) => {
   router.push({ name: 'movie-detail', params: { id } })

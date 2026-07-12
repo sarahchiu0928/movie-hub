@@ -5,6 +5,7 @@ import { useGetMovieDetail } from '../api/useGetMovieDetail'
 import type { Movie } from '../types/movies'
 import { IMAGE_BASE_URL } from '../constants/baseUrl'
 import { genreTranslations } from '../constants/genreTranslations'
+import { formatDuration } from '../utils/formatDuration'
 import MovieDetail from '../components/MovieDetail.vue'
 
 const route = useRoute()
@@ -17,13 +18,6 @@ const { data: rawMovie } = useGetMovieDetail(movieId)
 const movie = computed<Movie | null>(() => {
   const m = rawMovie.value
   if (!m) return null
-
-  // 格式化時長
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    return `${hours}h ${mins}m`
-  }
 
   return {
     id: m.id,
@@ -39,18 +33,9 @@ const movie = computed<Movie | null>(() => {
   }
 })
 
-const goToDetail = (m: Movie) => {
-  router.push({ name: 'movie-detail', params: { id: m.id } })
-}
 </script>
 
 <template>
-  <MovieDetail
-    v-if="movie"
-    :movie="movie"
-    :similar-movies="[]"
-    @back="router.push({ name: 'home' })"
-    @select-movie="goToDetail"
-  />
+  <MovieDetail v-if="movie" :movie="movie" @back="router.push({ name: 'home' })" />
   <div v-else class="min-h-screen flex items-center justify-center text-slate-400">載入中...</div>
 </template>

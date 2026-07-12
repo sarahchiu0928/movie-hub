@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { Movie } from '../types/movies'
 import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useGetMovieTrailer } from '../api/useGetMovieTrailer'
 import { useGetMovieCredits } from '../api/useGetmovieCredits'
-import { useWatchlist } from '../composables/useWatchlist'
-import { useAuth } from '../composables/useAuth'
+import { useUserStore } from '../stores/user'
 import MovieBackdrop from './MovieDetail/MovieBackdrop.vue'
 import BackButton from './MovieDetail/BackButton.vue'
 import MoviePosterCard from './MovieDetail/MoviePosterCard.vue'
@@ -12,21 +12,19 @@ import MovieHeader from './MovieDetail/MovieHeader.vue'
 import MoviePlot from './MovieDetail/MoviePlot.vue'
 import CastList from './MovieDetail/CastList.vue'
 import PlayButton from './MovieDetail/PlayButton.vue'
-import SimilarMoviesSection from './MovieDetail/SimilarMoviesSection.vue'
 import TrailerModal from './MovieDetail/TrailerModal.vue'
 
 const props = defineProps<{
   movie: Movie
-  similarMovies: Movie[]
 }>()
 
 const emit = defineEmits<{
   back: []
-  selectMovie: [movie: Movie]
 }>()
 
-const { user } = useAuth()
-const { isInWatchlist, toggleWatchlist } = useWatchlist()
+const userStore = useUserStore()
+const { user } = storeToRefs(userStore)
+const { isInWatchlist, toggleWatchlist } = userStore
 
 const handleToggle = (e: MouseEvent) => {
   e.stopPropagation()
@@ -51,11 +49,6 @@ const handlePlayClick = () => {
   movieId.value = props.movie.id
   showTrailerModal.value = true
 }
-
-const primaryGenre = computed(() => {
-  const genres = props.movie.genre?.split(' / ') ?? []
-  return genres[0] || '未分類'
-})
 
 const trailerKey = computed(() => {
   const key = trailerData.value?.results?.[0]?.key
@@ -101,14 +94,6 @@ const trailerKey = computed(() => {
           <PlayButton @play="handlePlayClick" />
         </div>
       </div>
-
-      <!-- 相似電影推薦 -->
-      <SimilarMoviesSection
-        v-if="similarMovies.length > 0"
-        :movies="similarMovies"
-        :genre-title="primaryGenre"
-        @select-movie="(m) => emit('selectMovie', m)"
-      />
     </div>
 
     <!-- 預告片 Modal -->

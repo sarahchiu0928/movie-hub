@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useSearchMovies } from '../api/useSearchMovies'
 import { IMAGE_BASE_URL } from '../constants/baseUrl'
-import { useAuth } from '../composables/useAuth'
+import { useUserStore } from '../stores/user'
 
 defineProps<{
   scrolled: boolean
 }>()
 
-const { user, logout, loginWithGoogle } = useAuth()
+const userStore = useUserStore()
+const { user } = storeToRefs(userStore)
+const { logout, loginWithGoogle } = userStore
 const showUserMenu = ref(false)
 const userMenuRef = ref<HTMLDivElement | null>(null)
 
+//判斷點擊是否在選單內，如果不是就關閉選單
 const handleClickOutside = (event: MouseEvent) => {
   if (userMenuRef.value && !userMenuRef.value.contains(event.target as Node)) {
     showUserMenu.value = false
@@ -37,10 +41,13 @@ const router = useRouter()
 const searchQuery = ref('')
 const isFocused = ref(false)
 
+//data: searchResults：把 useQuery 回傳的 data 重新命名為 searchResults
+//isFetching：用來判斷是否正在取得資料
 const { data: searchResults, isFetching } = useSearchMovies(searchQuery)
 
 const showDropdown = computed(() => isFocused.value && searchQuery.value.trim().length > 0)
 
+//搜尋框Enter事件
 const handleEnter = () => {
   if (!searchQuery.value.trim()) return
   router.push({ name: 'search', query: { q: searchQuery.value.trim() } })

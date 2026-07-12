@@ -1,24 +1,22 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useGetTrendingMovies } from '../api/useGetTrendingMovies'
 import { useGetMovieGenres } from '../api/useMovieGenres'
 import { useGetMovieDetail } from '../api/useGetMovieDetail'
 import type { Movie } from '../types/movies'
 import { IMAGE_BASE_URL } from '../constants/baseUrl'
 import { genreTranslations } from '../constants/genreTranslations'
+import { formatDuration } from '../utils/formatDuration'
 import HeroSection from '../components/HeroSection.vue'
 import GenreFilter from '../components/GenreFilter.vue'
 import MovieGrid from '../components/MovieGrid.vue'
-
-const router = useRouter()
 
 const { data: genreData } = useGetMovieGenres()
 
 // 類型
 const genres = computed(() => {
   const genreNames = (genreData.value?.genres ?? []).map((g) => genreTranslations[g.name] || g.name)
-  return ['全部', ...genreNames]
+  return ['全部', ...genreNames] // ['全部', '動作', '冒險', '劇情', '恐怖', ...]
 })
 
 // 建立繁體名稱和類型 ID 的對應
@@ -31,13 +29,6 @@ const genreIdMap = computed(() => {
   return map
 })
 
-// 格式化時長
-const formatDuration = (minutes: number) => {
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  return `${hours}h ${mins}m`
-}
-
 // 建立類型 ID 和繁體名稱的對應（用於反向查詢）
 const genreIdToNameMap = computed(() => {
   const map: Record<number, string> = {}
@@ -48,6 +39,7 @@ const genreIdToNameMap = computed(() => {
   return map
 })
 
+//這行在做「取得熱門電影清單」，而且是**無限捲動（infinite scroll）**版本
 const { data: trendingData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetTrendingMovies()
 
 const toMovie = (m: any): Movie => ({
@@ -68,17 +60,21 @@ const toMovie = (m: any): Movie => ({
   genreIds: m.genre_ids,
 })
 
+//將多頁的熱門電影合併成一個陣列 (flatMap 把分頁展開，並把每頁的結果轉成 Movie)
 const allMovies = computed<Movie[]>(() =>
   (trendingData.value?.pages ?? []).flatMap((page) => page.results.map(toMovie))
 )
 
 const activeGenre = ref('全部')
+//當前顯示的主打電影（Hero Section 的電影）
 const featuredMovie = ref<Movie | null>(null)
 
 const featuredMovieId = computed(() => (featuredMovie.value?.id ? String(featuredMovie.value.id) : ''))
 
+//透過 ID 取得主打電影的詳細資料
 const { data: rawFeaturedMovie } = useGetMovieDetail(featuredMovieId)
 
+//處理主打電影的詳細資料，例如時長和描述
 const displayFeaturedMovie = computed<Movie | null>(() => {
   if (!featuredMovie.value || !rawFeaturedMovie.value) return featuredMovie.value
 
@@ -105,19 +101,16 @@ const movies = computed<Movie[]>(() => {
   return allMovies.value.filter((movie) => movie.genreIds?.includes(selectedGenreId))
 })
 
+//監視 allMovies 的變化，如果有新的電影加入，就更新 featuredMovie
 watch(
   allMovies,
   (val) => {
     if (val.length && !featuredMovie.value) {
-      featuredMovie.value = val[0] ?? null
+      featuredMovie.value = val[0] ?? null //取第一部熱門電影當主打
     }
   },
-  { immediate: true }
+  { immediate: true } //立刻執行一次
 )
-
-const goToDetail = (movie: Movie) => {
-  router.push({ name: 'movie-detail', params: { id: movie.id } })
-}
 
 // Infinite scroll — Intersection Observer 監聽哨兵元素
 const sentinel = ref<HTMLElement | null>(null)
@@ -126,11 +119,14 @@ let observer: IntersectionObserver | null = null
 onMounted(() => {
   observer = new IntersectionObserver(
     (entries) => {
+      // entries[0]?.isIntersecting：判斷哨兵元素是否進入視窗
+      // hasNextPage.value：判斷是否有更多頁面可以載入
+      // !isFetchingNextPage.value：防止重複載入
       if (entries[0]?.isIntersecting && hasNextPage.value && !isFetchingNextPage.value) {
         fetchNextPage()
       }
     },
-    { threshold: 0.1 }
+    { threshold: 0.1 } //當哨兵元素有 10% 的區域進入視窗時觸發
   )
   if (sentinel.value) observer.observe(sentinel.value)
 })
@@ -142,12 +138,11 @@ onUnmounted(() => {
 
 <template>
   <div class="w-full">
-    <HeroSection v-if="displayFeaturedMovie" :movie="displayFeaturedMovie"
-      @view-detail="goToDetail(displayFeaturedMovie!)" />
+    <HeroSection v-if="displayFeaturedMovie" :movie="displayFeaturedMovie" />
     <main class="px-6 md:px-12 -mt-16 relative z-10 pb-20">
-      <GenreFilter :genres="genres" v-model="activeGenre" />
+      <GenreFilter :genres="genres" v-model:activeGenre="activeGenre" />
       <div class="space-y-12">
-        <MovieGrid :movies="movies" @select-movie="goToDetail" />
+        <MovieGrid :movies="movies" />
       </div>
 
       <!-- 哨兵元素：進入視窗時觸發載入下一頁 -->
